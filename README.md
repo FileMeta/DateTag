@@ -58,7 +58,7 @@ The software is distributed in C# as a [CodeBit](http://filemeta.org/CodeBit.htm
 
 DateTag is part of the [FileMeta](http://www.filemeta.org/) initiative because it manages a particular type of metadata field.
 
-This project includes the master copy of the [DateTag.cs]((https://raw.githubusercontent.com/FileMeta/DateTag/master/DateTag.cs) CodeBit plus a set of unit tests which may also serve as sample code.
+This project includes the master copy of the [DateTag.cs](https://raw.githubusercontent.com/FileMeta/DateTag/master/DateTag.cs) CodeBit plus a set of unit tests which may also serve as sample code.
 
 DateTag depends on the [TimeZoneTag](https://github.com/FileMeta/TimeZoneTag) CodeBit.
 
