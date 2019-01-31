@@ -3,9 +3,9 @@
 name: TimeZoneTag.cs
 description: CodeBit class that represents a timezone offset, parses and formats the timezone information into a metadata tag.
 url: https://raw.githubusercontent.com/FileMeta/TimeZoneTag/master/TimeZoneTag.cs
-version: 1.1
+version: 1.2
 keywords: CodeBit
-dateModified: 2019-01-30
+dateModified: 2019-01-31
 license: https://opensource.org/licenses/BSD-3-Clause
 # Metadata in MicroYaml format. See http://filemeta.org/CodeBit.html
 ...
@@ -127,6 +127,8 @@ namespace FileMeta
         const string c_utc = "Z";
         const long c_ticksPerSecond = 10000000;
         const long c_ticksPerMinute = 60 * c_ticksPerSecond;
+        const int c_maxOffset = 14 * 60;
+        const int c_minOffset = -14 * 60;
 
         #endregion Constants
 
@@ -189,8 +191,8 @@ namespace FileMeta
             var parts = timezoneTag.Substring(1).Split(':');
             if (parts.Length < 1 || parts.Length > 2) return false;
             int hours;
-            if (!int.TryParse(parts[0], out hours))  return false;
-            if (hours < 0 || hours > 23) return false;
+            if (!int.TryParse(parts[0], out hours)) return false;
+            if (hours < 0) return false;
 
             int minutes = 0;
             if (parts.Length > 1)
@@ -201,6 +203,7 @@ namespace FileMeta
 
             int totalMinutes = hours * 60 + minutes;
             if (negative) totalMinutes = -totalMinutes;
+            if (totalMinutes < c_minOffset || totalMinutes > c_maxOffset) return false;
             result = new TimeZoneTag(totalMinutes, TimeZoneKind.Normal);
             return true;
         }
