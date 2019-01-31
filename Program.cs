@@ -10,7 +10,6 @@ namespace FileMeta
             try
             {
                 Console.WriteLine("Testing valid values.");
-
                 foreach (var testCase in CreateTestCases())
                 {
                     Console.WriteLine(testCase.ToString());
@@ -50,6 +49,97 @@ namespace FileMeta
                 TestDetectPrecision("2019-01-23T10:00:00.123456740", DateTag.PrecisionTick);
                 TestDetectPrecision("2019-01-23T10:00:00.123456744", DateTag.PrecisionTick);
                 TestDetectPrecision("2019-01-23T10:00:00.1234567444", DateTag.PrecisionTick);
+                
+                Console.WriteLine();
+                Console.WriteLine("Testing AdaptFormatString.");
+                Console.WriteLine(CultureInfo.InvariantCulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.InvariantCulture.DateTimeFormat.ShortTimePattern);
+                // c_fullDate = "dddd, MMMM d, yyyy h:mm:ss.FFFFFFF tt"
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionTick + 10, c_fullDate);
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionTick + 1, c_fullDate);
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionTick, c_fullDate);
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionMicrosecond, "dddd, MMMM d, yyyy h:mm:ss.FFFFFF tt");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionMillisecond, "dddd, MMMM d, yyyy h:mm:ss.FFF tt");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionSecond+1, "dddd, MMMM d, yyyy h:mm:ss.F tt");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionSecond, "dddd, MMMM d, yyyy h:mm:ss tt");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionMinute, "dddd, MMMM d, yyyy h:mm tt");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionHour, "dddd, MMMM d, yyyy h tt");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionDay, "dddd, MMMM d, yyyy");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionMonth, "MMMM yyyy");
+                TestAdaptFormatString(c_fullDate, DateTag.PrecisionYear, "yyyy");
+                TestAdaptFormatString(c_fullDate, 0, "yyyy");
+                // c_shortDate = "MM/dd/yyyy HH:mm"
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionMillisecond, c_shortDate);
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionSecond + 1, c_shortDate);
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionSecond, c_shortDate);
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionMinute, c_shortDate);
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionHour, "MM/dd/yyyy HH");
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionDay, "MM/dd/yyyy");
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionMonth, "MM/yyyy");
+                TestAdaptFormatString(c_shortDate, DateTag.PrecisionYear, "yyyy");
+                TestAdaptFormatString(c_shortDate, 0, "yyyy");
+                // c_8601Date = "yyyy-MM-ddTHH:mm:ss.fffffff";
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionTick + 10, c_8601Date);
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionTick + 1, c_8601Date);
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionTick, c_8601Date);
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionMicrosecond, "yyyy-MM-ddTHH:mm:ss.ffffff");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionMillisecond, "yyyy-MM-ddTHH:mm:ss.fff");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionSecond + 1, "yyyy-MM-ddTHH:mm:ss.f");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionSecond, "yyyy-MM-ddTHH:mm:ss");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionMinute, "yyyy-MM-ddTHH:mm");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionHour, "yyyy-MM-ddTHH");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionDay, "yyyy-MM-dd");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionMonth, "yyyy-MM");
+                TestAdaptFormatString(c_8601Date, DateTag.PrecisionYear, "yyyy");
+                TestAdaptFormatString(c_8601Date, 0, "yyyy");
+                // c_8601DateTz = "yyyy-MM-ddTHH:mm:ss.fffffffK"
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionTick, c_8601DateTz);
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionMicrosecond, "yyyy-MM-ddTHH:mm:ss.ffffffK");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionMillisecond, "yyyy-MM-ddTHH:mm:ss.fffK");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionSecond + 1, "yyyy-MM-ddTHH:mm:ss.fK");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionSecond, "yyyy-MM-ddTHH:mm:ssK");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionMinute, "yyyy-MM-ddTHH:mmK");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionHour, "yyyy-MM-ddTHHK");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionDay, "yyyy-MM-dd");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionMonth, "yyyy-MM");
+                TestAdaptFormatString(c_8601DateTz, DateTag.PrecisionYear, "yyyy");
+                // Boundary cases (e.g. empty string, just one component, etc.)
+                TestAdaptFormatString("HH:mm", DateTag.PrecisionYear, string.Empty);
+                TestAdaptFormatString("MM", DateTag.PrecisionMillisecond, "MM");
+
+                Console.WriteLine();
+                Console.WriteLine("Testing ToString()");
+                TestToString("2018-12-28T10:59:45.1234567-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.1234567 AM");
+                TestToString("2018-12-28T10:59:45.123456-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.123456 AM");
+                TestToString("2018-12-28T10:59:45.12345-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.12345 AM");
+                TestToString("2018-12-28T10:59:45.1234-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.1234 AM");
+                TestToString("2018-12-28T10:59:45.123-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.123 AM");
+                TestToString("2018-12-28T10:59:45.12-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.12 AM");
+                TestToString("2018-12-28T10:59:45.1-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45.1 AM");
+                TestToString("2018-12-28T10:59:45-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59:45 AM");
+                TestToString("2018-12-28T10:59-05:00", c_fullDate, false, "Friday, December 28, 2018 10:59 AM");
+                TestToString("2018-12-28T10-05:00", c_fullDate, false, "Friday, December 28, 2018 10 AM");
+                TestToString("2018-12-28-05:00", c_fullDate, false, "Friday, December 28, 2018");
+                TestToString("2018-12", c_fullDate, false, "December 2018");
+                TestToString("2018", c_fullDate, false, "2018");
+                TestToString("2018-12-28T10:59:45.1234567-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.1234567 PM");
+                TestToString("2018-12-28T10:59:45.123456-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.123456 PM");
+                TestToString("2018-12-28T10:59:45.12345-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.12345 PM");
+                TestToString("2018-12-28T10:59:45.1234-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.1234 PM");
+                TestToString("2018-12-28T10:59:45.123-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.123 PM");
+                TestToString("2018-12-28T10:59:45.12-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.12 PM");
+                TestToString("2018-12-28T10:59:45.1-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45.1 PM");
+                TestToString("2018-12-28T10:59:45-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59:45 PM");
+                TestToString("2018-12-28T10:59-05:00", c_fullDate, true, "Friday, December 28, 2018 3:59 PM");
+                TestToString("2018-12-28T10-05:00", c_fullDate, true, "Friday, December 28, 2018 3 PM");
+                TestToString("2018-12-28-05:00", c_fullDate, true, "Friday, December 28, 2018");
+                TestToString("2018-12", c_fullDate, true, "December 2018");
+                TestToString("2018", c_fullDate, true, "2018");
+                TestToString("2018-12-28T21:59:45-05:00", c_shortDateTz, false, "12/28/2018 21:59-05:00");
+                TestToString("2018-12-28T21-05:00", c_shortDateTz, false, "12/28/2018 21-05:00");
+                TestToString("2018-12-28-14:00", c_shortDateTz, false, "12/28/2018");
+                TestToString("2018-12-28T21:59:45-05:00", c_shortDateTz, true, "12/29/2018 02:59Z");
+                TestToString("2018-12-28T21-05:00", c_shortDateTz, true, "12/29/2018 02Z");
+                TestToString("2018-12-28-14:00", c_shortDateTz, true, "12/29/2018");
 
                 Console.WriteLine();
                 Console.WriteLine("All tests succeeded.");
@@ -68,6 +158,20 @@ namespace FileMeta
             }
 #endif
         }
+
+        const string c_fullDate = "dddd, MMMM d, yyyy h:mm:ss.FFFFFFF tt";
+        const string c_shortDate = "MM/dd/yyyy HH:mm";
+        const string c_shortDateTz = "MM/dd/yyyy HH:mmK";
+        const string c_8601Date = "yyyy-MM-ddTHH:mm:ss.fffffff";
+        const string c_8601DateTz = "yyyy-MM-ddTHH:mm:ss.fffffffK";
+
+        static readonly TimeZoneInfo s_tzPlusFourFive =
+    TimeZoneInfo.CreateCustomTimeZone("Custom", new TimeSpan(4, 0, 0), "Custom", "Custom Standard", "Custom Daylight",
+        new TimeZoneInfo.AdjustmentRule[] {
+                        TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(DateTime.MinValue, new DateTime(9999, 1, 1), new TimeSpan(1, 0, 0),
+                        TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 4, 2, DayOfWeek.Sunday),
+                        TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday))
+        });
 
         static string[] s_failureCases = new string[]
         {
@@ -185,10 +289,10 @@ namespace FileMeta
                 new TestCase("2018-07-28T23:59:59.99999999Z", "2018-07-28T23:59:59.9999999Z", "2018-07-28T23:59:59.9999999", "Z", 21),
                 // Extremes
                 new TestCase("0001", "0001-01-01T12:00:00", "0", 4),
-                new TestCase("0001-01-01T00:00:00-23:59", "0001-01-01T00:00:00", "-23:59", 14),
-                new TestCase("0001-01-01T00:00:00-00:00", "0001-01-01T00:00:00+00:00", "0001-01-01T00:00:00", "+00:00", 14),
-                new TestCase("0001-01-01T00:00:00+00:00", "0001-01-01T00:00:00", "+00:00", 14),
-                new TestCase("0001-01-01T00:00:00Z", "0001-01-01T00:00:00", "Z", 14),
+                new TestCase("0001-01-02T00:00:00-23:59", "0001-01-02T00:00:00", "-23:59", 14),
+                new TestCase("0001-01-01T04:00:00-00:00", "0001-01-01T04:00:00+00:00", "0001-01-01T04:00:00", "+00:00", 14),
+                new TestCase("0001-01-01T04:00:00+00:00", "0001-01-01T04:00:00", "+00:00", 14), // The timezone being used in the test has a four-hour winter offset. This is the lowest possible value.
+                new TestCase("0001-01-01T04:00:00Z", "0001-01-01T04:00:00", "Z", 14),
                 new TestCase("9999-12-31T12:59:59.9999999+00:00", "9999-12-31T12:59:59.9999999", "+00:00", 21),
                 new TestCase("9999-12-31T12:59:59.9999999+23:59", "9999-12-31T12:59:59.9999999", "+23:59", 21),
                 new TestCase("9999-12-31T12:59:59.9999999Z", "9999-12-31T12:59:59.9999999", "Z", 21),
@@ -220,6 +324,30 @@ namespace FileMeta
             }
         }
 
+        static void TestAdaptFormatString(string format, int precision, string expected)
+        {
+            string val = DateTag.PrecisionAdaptFormatString(precision, format);
+            if (!string.Equals(val, expected, StringComparison.Ordinal))
+            {
+                throw new ApplicationException("Failed AdaptFormatString: " + val);
+            }
+
+            // Write to screen to ensure formatting doesn't throw an exception and to give format examples.
+            var now = new DateTag(DateTime.UtcNow, s_tzPlusFourFive, precision);
+            Console.WriteLine($"{expected} = {now.ToString(format, CultureInfo.CurrentCulture)} {now.ToString(format, CultureInfo.CurrentCulture, true)}");
+        }
+
+        static void TestToString(string val, string format, bool utcDefault, string expected)
+        {
+            Console.WriteLine($"{val} = {expected}");
+            var dt = DateTag.Parse(val);
+            var value = dt.ToString(format, CultureInfo.InvariantCulture, utcDefault);
+            if (!value.Equals(expected, StringComparison.Ordinal))
+            {
+                throw new ApplicationException("Failed ToString(format): " + value);
+            }
+        }
+
         class TestCase
         {
             string m_srcTag;
@@ -241,14 +369,6 @@ namespace FileMeta
                 : this(srcTag, srcTag, dt, tz, precision)
             {
             }
-
-            static readonly TimeZoneInfo s_tzPlusFourFive =
-                TimeZoneInfo.CreateCustomTimeZone("Custom", new TimeSpan(4, 0, 0), "Custom", "Custom Standard", "Custom Daylight",
-                    new TimeZoneInfo.AdjustmentRule[] {
-                        TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(DateTime.MinValue, new DateTime(9999, 1, 1), new TimeSpan(1, 0, 0),
-                        TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 4, 2, DayOfWeek.Sunday),
-                        TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday))
-                    });
 
             public void PerformTest()
             {
@@ -294,36 +414,18 @@ namespace FileMeta
                     throw new ApplicationException("Failed GetHashCode");
                 }
 
-                if (dtg.Date.Kind == DateTimeKind.Local)
+                if (dtg.Date.Kind != DateTimeKind.Local)
                 {
-                    if (!dtg.ToLocal().Equals(dtg.Date))
-                    {
-                        throw new ApplicationException("Failed ToLocal");
-                    }
+                    throw new ApplicationException("Failed kind");
+                }
 
-                    var dt = new DateTime(dtg.Date.Ticks - dtg.TimeZone.UtcOffsetTicks, DateTimeKind.Utc);
-                    if (!dtg.ToUtc().Equals(dt))
-                    {
-                        throw new ApplicationException("Failed ToUtc");
-                    }
-                }
-                else if (dtg.Date.Kind == DateTimeKind.Utc)
+                var dt = new DateTime(dtg.Date.Ticks - dtg.TimeZone.UtcOffsetTicks, DateTimeKind.Utc);
+                if (!dtg.DateUtc.Equals(dt))
                 {
-                    if (!dtg.ToUtc().Equals(dtg.Date))
-                    {
-                        throw new ApplicationException("Failed ToLocal");
-                    }
+                    throw new ApplicationException("Failed DateUtc");
+                }
 
-                    var dt = new DateTime(dtg.Date.Ticks + dtg.TimeZone.UtcOffsetTicks, DateTimeKind.Local);
-                    if (!dtg.ToLocal().Equals(dt))
-                    {
-                        throw new ApplicationException("Failed ToLocal");
-                    }
-                }
-                else
-                {
-                    throw new ApplicationException("Failed Kind");
-                }
+                // Constructors
 
                 dtg2 = new DateTag(dtg.Date, dtg.TimeZone, dtg.Precision);
                 if (!dtg.Equals(dtg2))
@@ -331,22 +433,38 @@ namespace FileMeta
                     throw new ApplicationException("Failed Constructor");
                 }
 
-                dtg2 = new DateTag(dtg.ToUtc(), dtg.TimeZone, dtg.Precision);
+                dtg2 = new DateTag(dtg.DateUtc, dtg.TimeZone, dtg.Precision);
                 if (!dtg.Equals(dtg2))
                 {
                     throw new ApplicationException("Failed Constructor on UTC");
                 }
 
-                dtg2 = new DateTag(dtg.ToLocal(), dtg.TimeZone, dtg.Precision);
-                if (!dtg.Equals(dtg2))
+                TimeSpan offset = s_tzPlusFourFive.GetUtcOffset(dtg.Date);
+                var dtgComp = new DateTag(dtg.Date, new TimeZoneTag(offset), dtg.Precision);
+
+                dtg2 = new DateTag(dtg.Date, s_tzPlusFourFive, dtg.Precision);
+                if (!dtg2.Equals(dtgComp) || !dtg2.TimeZone.UtcOffset.Equals(offset))
                 {
-                    throw new ApplicationException("Failed Constructor on Local");
+                    throw new ApplicationException("Failed TimeZoneInfo constructor.");
+                }
+
+                dtg2 = new DateTag(new DateTimeOffset(dtg.Ticks, offset), dtg.Precision);
+                if (!dtg2.Equals(dtgComp))
+                {
+                    throw new ApplicationException("Failed DateTimeOffset constructor.");
+                }
+
+                // Verify export to DateTimeOffset
+                var dto = new DateTimeOffset(dtg.Ticks, offset);
+                if (!dto.Equals(dtg2.ToDateTimeOffset()))
+                {
+                    throw new ApplicationException("Failed ToDateTimeOffset");
                 }
 
                 // Detect timezone and precision UTC
 
-                dtg2 = new DateTag(dtg.ToUtc(), null, 0);
-                if (!dtg2.Date.Equals(dtg.ToUtc()))
+                dtg2 = new DateTag(dtg.DateUtc);
+                if (!dtg2.Date.Equals(dtg.DateUtc))
                 {
                     throw new ApplicationException("Failed Constructor UTC Default");
                 }
@@ -361,22 +479,22 @@ namespace FileMeta
                     throw new ApplicationException("Failed Constructor UTC Default Precision");
                 }
 
-                // Detect timezone and precision UTC
+                // Detect timezone and precision Local
 
-                dtg2 = new DateTag(dtg.ToLocal(), null, 0);
-                if (!dtg2.Date.Equals(dtg.ToLocal()))
+                dtg2 = new DateTag(dtg.Date);
+                if (!dtg2.Date.Equals(dtg.Date))
                 {
-                    throw new ApplicationException("Failed Constructor UTC Default");
+                    throw new ApplicationException("Failed Constructor Local Default");
                 }
 
                 if (!dtg2.TimeZone.Equals(TimeZoneTag.ForceLocal))
                 {
-                    throw new ApplicationException("Failed Constructor UTC Default Timezone");
+                    throw new ApplicationException("Failed Constructor Local Default Timezone");
                 }
 
                 if (dtg2.Precision != DateTag.DetectPrecision(dtg.Date))
                 {
-                    throw new ApplicationException("Failed Constructor UTC Default Precision");
+                    throw new ApplicationException("Failed Constructor Local Default Precision");
                 }
 
                 dtg2 = dtg.ResolveTimeZone(s_tzPlusFourFive);
