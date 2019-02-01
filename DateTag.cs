@@ -3,7 +3,7 @@
 name: DateTag.cs
 description: CodeBit class that represents a Date metadata tag including DateTime, TimeZone, and Precision components. Includes parsing and formatting methods.
 url: https://raw.githubusercontent.com/FileMeta/DateTag/master/DateTag.cs
-version: 1.1
+version: 1.2
 keywords: CodeBit
 dateModified: 2019-01-30
 license: https://opensource.org/licenses/BSD-3-Clause
@@ -551,7 +551,7 @@ namespace FileMeta
             }
 
             // Change date to a local timezone if needed
-            if (date.Kind != DateTimeKind.Local)
+            if (date.Kind == DateTimeKind.Utc)
             {
                 date = timeZone.ToLocal(date);
             }
@@ -606,10 +606,12 @@ namespace FileMeta
 
         /// <summary>
         /// If TimeZone.Kind is <see cref="TimeZoneKind.ForceLocal"/> or <see cref="TimeZoneKind.ForceUtc"/>
-        /// resolves the timezone offset according to the default passed in. Else does nothing.
+        /// resolves the timezone offset according to the default passed in. Else returns the DateTag
+        /// unchanged.
         /// </summary>
         /// <param name="defaultTimeZone">The default <see cref="TimeZoneInfo"/> with which to resolve
-        /// thei timezone. Use <see cref="TimeZoneInfo.Local"/> for the current system timezone.
+        /// the timezone if none is already available. Use <see cref="TimeZoneInfo.Local"/> for the
+        /// current system timezone.
         /// </param>
         /// <returns>A <see cref="TimeZoneTag"/> in which the TimeZone offset has been resolved.</returns>
         /// <remarks>
@@ -622,13 +624,31 @@ namespace FileMeta
         /// <para>This method updates the timezone to the default ONLY if the existing value
         /// is either <see cref="TimeZoneKind.ForceLocal"/> or <see cref="TimeZoneKind.ForceUtc"/>.
         /// </para>
+        /// <para>When <see cref="TimeZone"/> is <see cref="TimeZoneKind.ForceLocal"/>, the value of
+        /// <see cref="Date"/> will be the same in the resulting output while the value of <see cref="DateUtc"/>
+        /// will be adjusted according to the appropriate timezone offset. When <see cref="TimeZone"/> is
+        /// <see cref="TimeZoneKind.ForceUtc"/> then the value of <see cref="DateUtc"/> will be the same
+        /// in original and returned values while the value of <see cref="Date"/> will be adjusted according
+        /// to the appropriate TimeZone offset.
+        /// </para>
         /// </remarks>
         public DateTag ResolveTimeZone(TimeZoneInfo defaultTimeZone)
         {
             if (TimeZone.Kind == TimeZoneKind.Normal) return this;
 
-            var tz = new TimeZoneTag(defaultTimeZone.GetUtcOffset(Date), TimeZoneKind.Normal);
-            return new DateTag(Date, tz, Precision);
+            if (TimeZone.Kind == TimeZoneKind.ForceUtc)
+            {
+                return new DateTag(DateUtc,
+                    new TimeZoneTag(defaultTimeZone.GetUtcOffset(DateUtc), TimeZoneKind.Normal),
+                    Precision);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(TimeZone.Kind == TimeZoneKind.ForceLocal);
+                return new DateTag(Date,
+                    new TimeZoneTag(defaultTimeZone.GetUtcOffset(Date), TimeZoneKind.Normal),
+                    Precision);
+            }
         }
 
         /// <summary>
@@ -816,7 +836,7 @@ namespace FileMeta
         public bool Equals(DateTag obj)
         {
             if (obj == null) return false;
-            return Date.Equals(obj.Date) && TimeZone.Equals(obj.TimeZone) && Precision.Equals(obj.Precision);
+            return m_dateTicks == obj.m_dateTicks && TimeZone.Equals(obj.TimeZone) && Precision == obj.Precision;
         }
 
         public override bool Equals(object obj)

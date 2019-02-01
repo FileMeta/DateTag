@@ -364,7 +364,9 @@ namespace FileMeta
             {
                 m_srcTag = srcTag;
                 m_canonicalTag = canonicalTag;
-                m_dt = DateTime.Parse(dt, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault|DateTimeStyles.RoundtripKind);
+                m_dt = DateTime.SpecifyKind(
+                    DateTime.Parse(dt, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault | DateTimeStyles.RoundtripKind),
+                    DateTimeKind.Local);
                 m_tz = TimeZoneTag.Parse(tz);
                 m_precision = precision;
             }
@@ -387,7 +389,7 @@ namespace FileMeta
                     throw new ApplicationException("Failed ToString");
                 }
 
-                if (!dtg.Date.Equals(m_dt))
+                if (!Equals(dtg.Date, m_dt))
                 {
                     throw new ApplicationException("Failed Date");
                 }
@@ -424,7 +426,7 @@ namespace FileMeta
                 }
 
                 var dt = new DateTime(dtg.Date.Ticks - dtg.TimeZone.UtcOffsetTicks, DateTimeKind.Utc);
-                if (!dtg.DateUtc.Equals(dt))
+                if (!Equals(dtg.DateUtc, dt))
                 {
                     throw new ApplicationException("Failed DateUtc");
                 }
@@ -460,7 +462,7 @@ namespace FileMeta
 
                 // Verify export to DateTimeOffset
                 var dto = new DateTimeOffset(dtg.Ticks, offset);
-                if (!dto.Equals(dtg2.ToDateTimeOffset()))
+                if (!Equals(dto, dtg2.ToDateTimeOffset()))
                 {
                     throw new ApplicationException("Failed ToDateTimeOffset");
                 }
@@ -468,7 +470,7 @@ namespace FileMeta
                 // Detect timezone and precision UTC
 
                 dtg2 = new DateTag(dtg.DateUtc);
-                if (!dtg2.Date.Equals(dtg.DateUtc))
+                if (!dtg2.Date.Equals(dtg.DateUtc) || !dtg2.DateUtc.Equals(dtg.DateUtc))
                 {
                     throw new ApplicationException("Failed Constructor UTC Default");
                 }
@@ -486,7 +488,7 @@ namespace FileMeta
                 // Detect timezone and precision Local
 
                 dtg2 = new DateTag(dtg.Date);
-                if (!dtg2.Date.Equals(dtg.Date))
+                if (!dtg2.Date.Equals(dtg.Date) || !dtg2.DateUtc.Equals(dtg.Date))
                 {
                     throw new ApplicationException("Failed Constructor Local Default");
                 }
@@ -500,6 +502,10 @@ namespace FileMeta
                 {
                     throw new ApplicationException("Failed Constructor Local Default Precision");
                 }
+
+                // When ResolveTimeZone is called on a ForceLocal, then Date should remain the same
+                // while DateUtc should change. When called on a ForceUtc then DateUtc should change while
+                // Date remains the same.
 
                 dtg2 = dtg.ResolveTimeZone(s_tzPlusFourFive);
 
@@ -517,9 +523,50 @@ namespace FileMeta
                         throw new ApplicationException("Failed ResolveTimeZone Kind");
                     }
                    
-                    if (!dtg2.TimeZone.UtcOffset.Equals(s_tzPlusFourFive.GetUtcOffset(dtg.Date)))
+                    if (!dtg2.TimeZone.UtcOffset.Equals(offset))
                     {
                         throw new ApplicationException("Failed ResolveTimeZone");
+                    }
+
+                    if (dtg.TimeZone.Kind == TimeZoneKind.ForceLocal)
+                    {
+                        if (!Equals(dtg.Date, dtg2.Date))
+                        {
+                            throw new ApplicationException("Failed ResolveTimezone Date match");
+                        }
+
+                        if (Equals(dtg.DateUtc, dtg2.Date))
+                        {
+                            throw new ApplicationException("Failed ResolveTimezone DateUtc match");
+                        }
+
+                        if (dtg2.Date.Ticks - dtg2.DateUtc.Ticks != offset.Ticks)
+                        {
+                            throw new ApplicationException("Failed ResolveTimezone offset");
+                        }
+                    }
+
+                    else
+                    {
+                        if (dtg.TimeZone.Kind != TimeZoneKind.ForceUtc)
+                        {
+                            throw new ApplicationException("Unexpected TimeZone kind");
+                        }
+
+                        if (!Equals(dtg.DateUtc, dtg2.DateUtc))
+                        {
+                            throw new ApplicationException("Failed ResolveTimezone DateUtc match");
+                        }
+
+                        if (Equals(dtg.Date, dtg2.Date))
+                        {
+                            throw new ApplicationException("Failed ResolveTimezone Date match");
+                        }
+
+                        if (dtg2.Date.Ticks - dtg2.DateUtc.Ticks != offset.Ticks)
+                        {
+                            throw new ApplicationException("Failed ResolveTimezone offset");
+                        }
                     }
                 }
             }
@@ -527,6 +574,21 @@ namespace FileMeta
             public override string ToString()
             {
                 return m_srcTag;
+            }
+
+            // DateTime.Equals only checks the date and time value, it doesn't include Kind in the comparison
+            // This function checks both.
+            static bool Equals(DateTime a, DateTime b)
+            {
+                return a.Ticks == b.Ticks && a.Kind == b.Kind;
+            }
+
+            // DateTimeOffset checks that the two values represent the "same point in time". Therefore, they could be
+            // different times and offsets so long as they resolve to the same UTC time.
+            // This function checks that they are identical (same time and offset).
+            static bool Equals(DateTimeOffset a, DateTimeOffset b)
+            {
+                return a.Ticks == b.Ticks && a.Offset.Ticks == b.Offset.Ticks;
             }
         }
     }
